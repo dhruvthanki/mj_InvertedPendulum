@@ -44,13 +44,13 @@ while(not glfw.window_should_close(window)):
     site_pos = data.site_xpos[ballsite]
     # print(site_pos)
 
-    Kp = 10
+    Kp = 100
     Kd = math.sqrt(Kp)/2;
-    
+
     pd = Kp*(q_des-data.qpos) + Kd*(dq_des-data.qvel)
     b3 = -ddq_des - pd
 
-    data.ctrl = b3
+    data.ctrl = -b3
     
     mujoco.mj_step2(model, data)
 

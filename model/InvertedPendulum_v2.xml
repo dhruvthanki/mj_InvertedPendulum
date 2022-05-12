@@ -1,6 +1,6 @@
 <mujoco model="inverted pendulum">
     <compiler angle="radian"/>
-    <option timestep="0.0005" iterations="50">        
+    <option gravity='0 0 -9.806' timestep="0.0005" iterations="50">        
         <flag sensornoise="enable"/>
     </option>
     <asset>
@@ -13,9 +13,10 @@
         <light directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5" dir="-.9 -.3 -2.5 "/>
         <geom name='floor' type='plane' conaffinity='15' condim='3' material='plane' pos='0 0 0' size='1 1 0.125'/>
         <body name="beambody" pos="0 0 .2">
-            <geom name='base' type='box' rgba='1 0 0 1' pos='0 0 0' size='0.05 0.05 0.05' mass='0.001'/> 
+            <geom name="base" pos="0 0 0" type="capsule" size=".01 .2" rgba='1 0 0 1' euler="1.57 0 0" mass='0.001'/>
+            <!-- <geom name='base' type='box' rgba='1 0 0 1' pos='0 0 0' size='0.05 0.05 0.05' mass='0.001'/>  -->
+            <joint name="pivot" pos="0 0 0" axis="0 1 0" limited="false" damping=".05"/>
             <body name="rodbody" pos="0 0 0">
-                <joint name="pivot" pos="0 0 0" axis="0 1 0" limited="false" damping=".05"/>
                 <geom name="rodgeom" type="cylinder" rgba='1 1 1 1' pos="0 0 0.2" size=".005 .2" mass="0.001"/>
                 <body name="ballbody" pos="0 0 0.4">
                     <geom name="ballgeom" type="sphere" rgba='1 1 1 1' pos="0 0 0" size=".05" mass="10"/>
