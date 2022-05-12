@@ -22,7 +22,7 @@ context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
 scene = mujoco.MjvScene(model, 6000)
 camera = mujoco.MjvCamera()
-camera.trackbodyid = 1
+camera.trackbodyid = 2
 camera.distance = 2
 camera.azimuth = 100
 camera.elevation = -20
@@ -32,24 +32,25 @@ mujoco.mjv_updateScene(
 
 data.qpos = np.deg2rad(10)
 
-# mujoco.mj_step(model, data)
-# ballsite = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "ballsite")
-# site_pos = data.site_xpos[ballsite]
-# print(site_pos)
+ballsite = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "ballsite")
 
-q_des = np.deg2rad(10)
-dq_des = np.deg2rad(10)
-ddq_des = np.deg2rad(10)
+q_des = np.deg2rad(0)
+dq_des = np.deg2rad(0)
+ddq_des = np.deg2rad(0)
 
 while(not glfw.window_should_close(window)):
     mujoco.mj_step1(model, data)
 
-    Kp = 150
-    Kd = math.sqrt(Kp)/2;
-    pd = Kp*(q_des-data.qpos) + Kd*(dq_des-data.qvel)
-    b3 = -pd
+    site_pos = data.site_xpos[ballsite]
+    # print(site_pos)
 
-    data.ctrl = pd
+    Kp = 10
+    Kd = math.sqrt(Kp)/2;
+    
+    pd = Kp*(q_des-data.qpos) + Kd*(dq_des-data.qvel)
+    b3 = -ddq_des - pd
+
+    data.ctrl = b3
     
     mujoco.mj_step2(model, data)
 
