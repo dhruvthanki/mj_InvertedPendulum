@@ -1,0 +1,44 @@
+<mujoco model="inverted pendulum">
+    
+    <compiler angle="radian"/>
+    
+    <option timestep="0.0005" iterations="50">        
+        <flag sensornoise="enable"/>
+    </option>
+
+	<asset>
+        <material name='collision' rgba='0.1 0.5 0.9 0.0'/>
+        <material name='plane' reflectance='0.000000' texrepeat='1 1' texture='plane' texuniform='true'/>
+        <material name='robot' rgba='1.0 1.0 1.0 1'/>
+        <texture builtin='checker' height='512' name='plane' rgb1='0.2 0.2 0.2' rgb2='0.3 0.3 0.3' type='2d' width='512'/>
+        <texture builtin='gradient' height='128' rgb1='0.4 0.6 0.8' rgb2='0 0 0' type='skybox' width='128'/>
+    </asset>
+
+    <default>
+    <geom  rgba="0.45 0.6 0.6 1"/>
+        <site type="sphere" size="0.02"/>
+    </default>
+
+    <worldbody>
+        <light directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5" dir="-.9 -.3 -2.5 "/>
+        <geom name='floor' type='plane' conaffinity='15' condim='3' material='plane' pos='0 0 0' size='5 5 0.125'/>
+        <!-- <geom name="ground" type="plane" pos="0 0 0" size="0.5 1 2" rgba=" .25 .26 .25 1"/> -->
+        <body name="beam" pos="0 0 .5">
+            <!--density of the rod is ten times smaller than other objects (e.g. the ball) for a better point mass approximation-->
+            <geom name="rod" type="cylinder" pos="0 0 0.0" size=".005 .1" density="100"/>
+            <geom pos="0 0 -.1" type="capsule" size=".01 .2" euler="1.57 0 0"/>
+            <joint name="pivot" pos="0 0 -0.1" axis="0 1 0" limited="false" damping=".05"/>
+            <body name="ballbody" pos="0 0 0.1">
+                <geom name="ballgeom" type="sphere" size=".05"/>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <motor joint='pivot' name='motor' gear="1" forcelimited="true" forcerange="-10 10"/>
+    </actuator>
+
+    <sensor>
+        <jointpos name="encoder" joint="pivot" noise="0.001"/>
+    </sensor>
+</mujoco>
