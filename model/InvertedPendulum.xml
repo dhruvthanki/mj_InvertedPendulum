@@ -14,19 +14,13 @@
         <texture builtin='gradient' height='128' rgb1='0.4 0.6 0.8' rgb2='0 0 0' type='skybox' width='128'/>
     </asset>
 
-    <default>
-    <geom  rgba="0.45 0.6 0.6 1"/>
-        <site type="sphere" size="0.02"/>
-    </default>
-
     <worldbody>
         <light directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5" dir="-.9 -.3 -2.5 "/>
-        <geom name='floor' type='plane' conaffinity='15' condim='3' material='plane' pos='0 0 0' size='5 5 0.125'/>
-        <!-- <geom name="ground" type="plane" pos="0 0 0" size="0.5 1 2" rgba=" .25 .26 .25 1"/> -->
+        <geom name='floor' type='plane' conaffinity='15' condim='3' material='plane' pos='0 0 0' size='1 1 0.125'/>
         <body name="beam" pos="0 0 .5">
-            <!--density of the rod is ten times smaller than other objects (e.g. the ball) for a better point mass approximation-->
+            <geom name="beam" pos="0 0 -.1" type="capsule" size=".01 .2" euler="1.57 0 0"/>
+            <!--density of the rod is ten times smaller than the ball for a better point mass approximation-->
             <geom name="rod" type="cylinder" pos="0 0 0.0" size=".005 .1" density="100"/>
-            <geom pos="0 0 -.1" type="capsule" size=".01 .2" euler="1.57 0 0"/>
             <joint name="pivot" pos="0 0 -0.1" axis="0 1 0" limited="false" damping=".05"/>
             <body name="ballbody" pos="0 0 0.1">
                 <geom name="ballgeom" type="sphere" size=".05"/>
@@ -39,6 +33,7 @@
     </actuator>
 
     <sensor>
-        <jointpos name="encoder" joint="pivot" noise="0.001"/>
+        <!-- <jointpos name="encoder" joint="pivot" noise="0.001"/> -->
+        <jointpos name="encoder" joint="pivot"/>
     </sensor>
 </mujoco>

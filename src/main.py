@@ -16,43 +16,40 @@ window = init_window(2400, 1800)
 width, height = glfw.get_framebuffer_size(window)
 viewport = mujoco.MjrRect(0, 0, width, height)
 
-model = mujoco.MjModel.from_xml_path('model/InvertedPendulum.xml')
-# model.nuserdata = 25
+model = mujoco.MjModel.from_xml_path('model/InvertedPendulum_v2.xml')
 data = mujoco.MjData(model)
 context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
 scene = mujoco.MjvScene(model, 6000)
 camera = mujoco.MjvCamera()
-# base_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, 'base')
 camera.trackbodyid = 1
-# camera.distance = 1
-# camera.azimuth = 0
-# camera.elevation = -10
-camera.distance = 1.5
+camera.distance = 2
 camera.azimuth = 100
 camera.elevation = -20
 mujoco.mjv_updateScene(
     model, data, mujoco.MjvOption(), mujoco.MjvPerturb(),
     camera, mujoco.mjtCatBit.mjCAT_ALL, scene)
 
-data.qpos = 45
+data.qpos = np.deg2rad(10)
+
+# mujoco.mj_step(model, data)
+# ballsite = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "ballsite")
+# site_pos = data.site_xpos[ballsite]
+# print(site_pos)
+
+q_des = np.deg2rad(10)
+dq_des = np.deg2rad(10)
+ddq_des = np.deg2rad(10)
 
 while(not glfw.window_should_close(window)):
     mujoco.mj_step1(model, data)
 
-    # if model.nq == 61:
-    #     q_act = (userdata.Bq).dot(data.qpos)
-    #     dq_act = (userdata.Bv).dot(data.qvel)
-    # elif model.nq == 54:
-    #     q_act = (userdata.Bq).dot(data.qpos)
-    #     dq_act = (userdata.Bv).dot(data.qvel)
+    Kp = 150
+    Kd = math.sqrt(Kp)/2;
+    pd = Kp*(q_des-data.qpos) + Kd*(dq_des-data.qvel)
+    b3 = -pd
 
-    # Kp = 150
-    # Kd = math.sqrt(Kp)/2;
-    # pd = Kp*(userdata.q_des-q_act) + Kd*(np.zeros(20)-dq_act)
-    # b3 = -pd
-
-    # data.ctrl = pd
+    data.ctrl = pd
     
     mujoco.mj_step2(model, data)
 
