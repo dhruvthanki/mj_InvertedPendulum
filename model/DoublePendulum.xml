@@ -1,0 +1,39 @@
+<mujoco model="inverted pendulum">
+    <compiler angle="radian"/>
+    <option gravity='0 0 -9.806' timestep="0.0005" iterations="50">        
+        <flag sensornoise="enable"/>
+    </option>
+    <asset>
+        <texture type='skybox' builtin='gradient' width='128' height='128' rgb1='0.4 0.6 0.8' rgb2='0 0 0'/>
+        <texture name='plane' type='2d' builtin='checker' rgb1='0.2 0.2 0.2' rgb2='0.3 0.3 0.3' width='512' height='512'/>
+        <material name='plane' reflectance='0.0' texture='plane' texrepeat='1 1' texuniform='true'/>
+    </asset>
+
+    <worldbody>
+        <light directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5" dir="-.9 -.3 -2.5 "/>
+        <geom name='floor' type='plane' conaffinity='15' condim='3' material='plane' pos='0 0 0' size='1 1 0.125'/>
+        <!-- <geom pos="0 0 0" size="0.03 0.03 0.03" rgba='0 1 0 1' type="box"/> -->
+        <body name="rod1" pos="0 0 0.2" euler="0 0 0">
+            <geom name="base" type="sphere" rgba='0 1 0 1' pos="0 0 0" size=".05"/>
+            <geom name="rod1" type="cylinder" rgba='1 1 1 1' pos="0 0 0.2" size=".005 .2" mass="10"/>
+            <joint name="pivot1" pos="0 0 0" axis="0 1 0" limited="false" damping=".05"/>
+            <body name="rod2" pos="0 0 0.4" euler="0 0 0">
+                <joint name="pivot2" pos="0 0 0" axis="0 1 0" limited="false" damping=".05"/>
+                <geom name="rod2" type="cylinder" rgba='1 1 1 1' pos="0 0 0.2" size=".005 .2" mass="10"/>
+                <site name='EndEffector' pos='0 0 0.4' size='0.01' rgba='1 0 0 1'/>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <motor joint='pivot1' name='motor1' gear="1" forcelimited="true" forcerange="-10 10"/>
+        <motor joint='pivot2' name='motor2' gear="1" forcelimited="true" forcerange="-10 10"/>
+    </actuator>
+    <sensor>
+        <!-- <jointpos name="encoder1" joint="pivot" noise="0.001"/> -->
+        <!-- <jointpos name="encoder2" joint="pivot" noise="0.001"/> -->
+        <jointpos name="encoder1" joint="pivot1"/>
+        <jointpos name="encoder2" joint="pivot2"/>
+    </sensor>
+
+</mujoco>
