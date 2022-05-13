@@ -1,4 +1,4 @@
-<mujoco model="inverted pendulum">
+<mujoco model="DoublePendulum">
     <compiler angle="radian"/>
     <option gravity='0 0 -9.806' timestep="0.0005" iterations="50">        
         <flag sensornoise="enable"/>
@@ -30,10 +30,14 @@
         <motor joint='pivot2' name='motor2' gear="1" forcelimited="true" forcerange="-10 10"/>
     </actuator>
     <sensor>
-        <!-- <jointpos name="encoder1" joint="pivot" noise="0.001"/> -->
-        <!-- <jointpos name="encoder2" joint="pivot" noise="0.001"/> -->
-        <jointpos name="encoder1" joint="pivot1"/>
+        <jointpos name="q1" joint="pivot1" noise="0.001"/>
+        <jointpos name="q2" joint="pivot2" noise="0.001"/>
+        <jointvel name='dq1' joint='pivot1' noise="0.001"/>
+        <jointvel name='dq2' joint='pivot2' noise="0.001"/>
+        <!-- <jointpos name="encoder1" joint="pivot1"/>
         <jointpos name="encoder2" joint="pivot2"/>
+        <jointvel name='dq1' joint='pivot1'/>
+        <jointvel name='dq2' joint='pivot2'/> -->
     </sensor>
 
 </mujoco>
