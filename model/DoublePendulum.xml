@@ -1,6 +1,7 @@
 <mujoco model="DoublePendulum">
     <compiler angle="radian"/>
-    <option gravity='0 0 -9.806' timestep="0.0005" iterations="50">        
+    <option gravity='0 0 0' timestep="0.0005" iterations="50">        
+    <!-- <option gravity='0 0 -9.806' timestep="0.0005" iterations="50">  -->
         <flag sensornoise="enable"/>
     </option>
     <asset>

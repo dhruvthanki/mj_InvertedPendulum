@@ -1,3 +1,5 @@
+# https://arxiv.org/pdf/1204.0375.pdf
+# https://github.com/zziz/kalman-filter/blob/master/kalman-filter.py
 import numpy as np
 
 class KalmanFilter(object):

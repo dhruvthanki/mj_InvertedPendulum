@@ -49,8 +49,8 @@ st_jacp = np.zeros((3,2))
 st_jacr = np.zeros((3,2))
 mujoco.mj_jacSite(model, data, st_jacp, st_jacr, EndEffector);
 J_old = st_jacp[indices,:]
-Kp = 500
-Kd = (math.sqrt(Kp)/2)
+Kp = 1000
+Kd = (math.sqrt(Kp)/2) + 200
 M = np.zeros((2,2))
 B = np.identity(2)
 u = np.hstack([ctrl_range, 50*np.ones(2)])
@@ -59,15 +59,19 @@ while(not glfw.window_should_close(window)):
     mujoco.mj_step1(model, data)
 
     site_pos = data.site_xpos[EndEffector]
+    print(site_pos)
     xz_pos = site_pos[indices]
+    print(xz_pos)
 
-    mujoco.mj_jacSite(model, data, st_jacp, st_jacr, EndEffector);
+    mujoco.mj_jacSite(model, data, st_jacp, st_jacr, EndEffector)
+    print(st_jacp)
     Jac = st_jacp[indices,:]
+    print(Jac)
     dJac = (Jac - J_old)/0.0005
     J_old = Jac
 
     a3 = np.block([np.zeros((2, 2)), -Jac])
-    ddy_des = dd_ref + Kd*(d_ref-dJac@data.qvel) + Kp*(ref-xz_pos)
+    ddy_des = dd_ref + Kd*(d_ref-Jac@data.qvel) + Kp*(ref-xz_pos)
     b3 = dJac@data.qvel - ddy_des
 
     mujoco.mj_fullM(model, M, data.qM)
@@ -75,19 +79,6 @@ while(not glfw.window_should_close(window)):
 
     Aeq = np.block([[-B, M]])
     beq = -Bias
-
-    # OSQP Setup
-    Q = (a3.transpose()).dot(a3)
-    q = (-a3.transpose()).dot(b3)
-    P = sparse.csc_matrix(Q)
-    A = sparse.csc_matrix(Aeq)
-
-    # OSQP
-    prob = osqp.OSQP()
-    prob.setup(P, q, A, beq, beq, verbose=False)
-    res = prob.solve()
-    # print(res.x[:2])
-    data.ctrl = res.x[:2]
 
     # CVX_PY
     # x = cp.Variable(4)
@@ -99,6 +90,23 @@ while(not glfw.window_should_close(window)):
     # except:
     #     pass
     # data.ctrl = x.value[:2]
+
+    # OSQP Setup
+    # https://scaron.info/blog/conversion-from-least-squares-to-quadratic-programming.html
+    Q = (a3.transpose()).dot(a3)
+    q = -(a3.transpose()).dot(b3)
+    P = sparse.csc_matrix(Q)
+    A = sparse.csc_matrix(Aeq)
+
+    # OSQP
+    prob = osqp.OSQP()
+    prob.setup(P, q, A, beq, beq, verbose=False)
+    try:
+        res = prob.solve()
+    except:
+        pass
+    # print(res.x[:2])
+    data.ctrl = res.x[:2]
 
     mujoco.mj_step2(model, data)
 
