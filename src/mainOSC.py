@@ -59,14 +59,10 @@ while(not glfw.window_should_close(window)):
     mujoco.mj_step1(model, data)
 
     site_pos = data.site_xpos[EndEffector]
-    print(site_pos)
     xz_pos = site_pos[indices]
-    print(xz_pos)
 
     mujoco.mj_jacSite(model, data, st_jacp, st_jacr, EndEffector)
-    print(st_jacp)
     Jac = st_jacp[indices,:]
-    print(Jac)
     dJac = (Jac - J_old)/0.0005
     J_old = Jac
 
