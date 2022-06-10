@@ -49,8 +49,6 @@ Kd = (np.sqrt(Kp)/2) + np.array([40, 50, 20, 18, 5, 2])
 Kp_osc = 400
 Kd_osc = (np.sqrt(Kp_osc)/2) + 40
 
-# data.qpos = np.array([np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)])
-data.qpos = np.array([np.deg2rad(90), np.deg2rad(-90), np.deg2rad(0), np.deg2rad(-90), np.deg2rad(90), np.deg2rad(90)])
 q_des = np.array([np.deg2rad(90), np.deg2rad(-90), np.deg2rad(0), np.deg2rad(-90), np.deg2rad(90), np.deg2rad(90)])
 # data.qpos = np.zeros(model.nq)
 data.qpos = np.array([ 1.0127, -1.255,  -1.0273, -0.545,   2.4103,  1.57  ])
@@ -85,8 +83,9 @@ while(not glfw.window_should_close(window)):
 
     a3 = np.block([np.zeros((3, model.nu)), -st_jacp])
     ref, d_ref, dd_ref = calc_des(model, data)
-    ddy_des = dd_ref + Kd_osc*(d_ref-st_jacp@data.qvel) + Kp_osc*(ref-site_pos)
-    b3 = dJac@data.qvel - ddy_des
+    ddy_des_pos = dd_ref + Kd_osc*(d_ref-st_jacp@data.qvel) + Kp_osc*(ref-site_pos)
+    ddy_des_ori = np.zeros((1,4)) + Kd_osc*(np.zeros((1,4))-st_jacr@data.qvel) + Kp_osc*(ref-site_pos)
+    b3 = dJac@data.qvel - ddy_des_pos
 
     mujoco.mj_fullM(model, M, data.qM)
     Bias = data.qfrc_bias
