@@ -1,0 +1,5 @@
+mujoco==2.1.5
+glfw
+numpy
+osqp
+scipy
