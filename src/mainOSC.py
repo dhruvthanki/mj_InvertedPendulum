@@ -2,14 +2,17 @@ import mujoco
 import glfw
 import numpy as np
 np.set_printoptions(precision=4)
-import math
 import osqp
 from scipy import sparse
+
+# import imageio
+# create a video writer with imageio
+# writer = imageio.get_writer("video.mp4", fps=20)
 
 def init_window(max_width, max_height):
     glfw.init()
     window = glfw.create_window(width=max_width, height=max_height,
-                                       title='Demo', monitor=None,
+                                       title='OSC', monitor=None,
                                        share=None)
     glfw.make_context_current(window)
     return window
@@ -49,7 +52,7 @@ st_jacr = np.zeros((3,2))
 mujoco.mj_jacSite(model, data, st_jacp, st_jacr, EndEffector);
 J_old = st_jacp[indices,:]
 Kp = 1000
-Kd = (math.sqrt(Kp)/2) + 60
+Kd = (np.sqrt(Kp)/2) + 60
 M = np.zeros((2,2))
 B = np.identity(2)
 u = np.hstack([ctrl_range, 50*np.ones(2)])
@@ -90,6 +93,7 @@ while(not glfw.window_should_close(window)):
     except:
         pass
     data.ctrl = res.x[:2]
+    # print(data.ctrl)
 
     mujoco.mj_step2(model, data)
 
@@ -100,5 +104,7 @@ while(not glfw.window_should_close(window)):
 
     glfw.swap_buffers(window)
     glfw.poll_events()
-
+    
+    # writer.append_data(frame)
 glfw.terminate()
+# writer.close()
