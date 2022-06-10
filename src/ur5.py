@@ -46,33 +46,32 @@ u = np.hstack([ctrl_range, 50*np.ones(model.nv)])
 
 Kp = np.array([500, 500, 100, 50, 10, 10])
 Kd = (np.sqrt(Kp)/2) + np.array([40, 50, 20, 18, 5, 2])
-Kp_osc = 300
-Kd_osc = (np.sqrt(Kp_osc)/2) + 20
+Kp_osc = 400
+Kd_osc = (np.sqrt(Kp_osc)/2) + 40
 
 # data.qpos = np.array([np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)])
 data.qpos = np.array([np.deg2rad(90), np.deg2rad(-90), np.deg2rad(0), np.deg2rad(-90), np.deg2rad(90), np.deg2rad(90)])
 q_des = np.array([np.deg2rad(90), np.deg2rad(-90), np.deg2rad(0), np.deg2rad(-90), np.deg2rad(90), np.deg2rad(90)])
-data.qpos = np.zeros(model.nq)
+# data.qpos = np.zeros(model.nq)
+data.qpos = np.array([ 1.0127, -1.255,  -1.0273, -0.545,   2.4103,  1.57  ])
 
 def calc_des(model, data):
-    ref = np.array([-0.134,  -0.0994,  1.0795])
-    d_ref = np.zeros(3)
-    dd_ref = np.zeros(3)
+    A = 0.20
+    omega = 1#2*np.pi*1
+    # ref = np.array([-0.134,  -0.0994,  1.0795-1.5*A+A])
+    # d_ref = np.zeros(3)
+    # dd_ref = np.zeros(3)
+    ref = np.array([-0.134,  -0.0994+A*np.sin(omega*data.time),  1.0795-1.5*A+A*np.cos(omega*data.time)])
+    d_ref = np.array([0,  A*np.cos(data.time),  -A*np.sin(data.time)])
+    dd_ref = np.array([0,  -A*np.sin(data.time),  -A*np.cos(data.time)])
     return ref, d_ref, dd_ref
 
-dummy_state = np.zeros((1,3))
-real_states = np.zeros((1,3))
-real_states[0,:] = site_pos
-
+real_states = np.reshape(site_pos, (1, 3))
 ref, d_ref, dd_ref = calc_des(model, data)
-des_states = np.zeros((1,3))
-des_states[0,:] = ref
+des_states = np.reshape(ref, (1, 3))
+time = np.reshape(data.time, (1, 1))
 
-time = np.zeros((1,1))
-time[0,0] = data.time
-dummy_time = np.zeros((1,1))
-
-delta = 1.0e-1
+delta = 1.0e-2
 
 while(not glfw.window_should_close(window)):
     mujoco.mj_step1(model, data)
@@ -113,14 +112,9 @@ while(not glfw.window_should_close(window)):
 
     mujoco.mj_step2(model, data)
     
-    dummy_state[0,:] = ref
-    des_states = np.append(des_states, dummy_state, axis=0)
-
-    dummy_state[0,:] = data.site_xpos[EndEffector]
-    real_states = np.append(real_states, dummy_state, axis=0)
-    
-    dummy_time[0,0] = data.time
-    time = np.append(time, dummy_time, axis=0)
+    des_states = np.append(des_states, np.reshape(ref, (1, 3)), axis=0)
+    real_states = np.append(real_states, np.reshape(site_pos, (1, 3)), axis=0)
+    time = np.append(time, np.reshape(data.time, (1, 1)), axis=0)
 
     mujoco.mjv_updateScene(
         model, data, mujoco.MjvOption(), None,
@@ -132,12 +126,30 @@ while(not glfw.window_should_close(window)):
 
 glfw.terminate()
 
-error = 100+(real_states-des_states)
+plt.figure()
+
+plt.subplot(121)
+plt.plot(real_states[:,1], real_states[:,2], color='b', label='Circle Tracked')
+plt.plot(des_states[:,1], des_states[:,2], color='g', label='Desired Circle')
+plt.xlim(-0.4, 0.2)
+plt.ylim(0.5, 1)
+plt.xlabel("Y-axis (m)")
+plt.ylabel("Z-axis (m)")
+plt.axis("Equal")
+plt.title("End-Effector Traj in YZ-plane")
+plt.legend()
+
+plt.subplot(122)
+error = 100*(real_states-des_states)
 plt.plot(time[:,0], error[:,0], color='r', label='Tracking Error X')
 plt.plot(time[:,0], error[:,1], color='b', label='Tracking Error Y')
 plt.plot(time[:,0], error[:,2], color='g', label='Tracking Error Z')
 plt.xlabel("Time")
-plt.ylabel("Magnitude")
-# plt.title("Sine and Cosine functions")
-# plt.legend()
+plt.ylabel("Magnitude (mm)")
+plt.title("Trajectory Tracking Error")
+plt.legend()
+
+# set the spacing between subplots
+plt.subplots_adjust(wspace=0.4)
+plt.suptitle('Dynamic Simulation')
 plt.show()
