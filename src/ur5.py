@@ -43,7 +43,7 @@ st_jacr = np.zeros((3,model.nv))
 EndEffector = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "EndEffector")
 site_pos = data.site_xpos[EndEffector]
 mujoco.mj_jacSite(model, data, st_jacp, st_jacr, EndEffector);
-print(st_jacp)
+# print(st_jacp)
 J_old = st_jacp
 M = np.zeros((model.nv,model.nv))
 B = np.identity(model.nv)
@@ -73,7 +73,7 @@ real_states = np.reshape(site_pos, (1, 3))
 ref, d_ref, dd_ref, ref_ori = calc_des(model, data)
 A = 0.20
 data.qvel = np.linalg.pinv(st_jacp)@np.array([0, A, 0])
-print(data.qvel)
+# print(data.qvel)
 des_states = np.reshape(ref, (1, 3))
 time = np.reshape(data.time, (1, 1))
 input = np.zeros((1,6))
@@ -135,7 +135,7 @@ while(not glfw.window_should_close(window)):
     glfw.swap_buffers(window)
     glfw.poll_events()
     
-    print(np.block([[data.qpos, data.qvel]]))
+    # print(np.block([[data.qpos, data.qvel]]))
 
 glfw.terminate()
 
