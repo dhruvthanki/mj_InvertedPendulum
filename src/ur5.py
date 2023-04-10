@@ -24,9 +24,51 @@ data = mujoco.MjData(model)
 context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
 scene = mujoco.MjvScene(model, 6000)
+
+# def get_geom_speed(physics, geom_name):
+#   """Returns the speed of a geom."""
+#   geom_vel = np.zeros(6)
+#   geom_type = mujoco.mjtObj.mjOBJ_GEOM
+#   geom_id = mujoco.mj_name2id(physics.model.ptr, geom_type, geom_name)
+#   mujoco.mj_objectVelocity(physics.model.ptr, physics.data.ptr,
+#                            geom_type, geom_id, geom_vel, 0)
+#   return np.linalg.norm(geom_vel)
+
+# def add_visual_capsule(scene, point1, point2, radius, rgba):
+#   """Adds one capsule to an mjvScene."""
+#   if scene.ngeom >= scene.maxgeom:
+#     return
+#   scene.ngeom += 1  # increment ngeom
+#   # initialise a new capsule, add it to the scene using mjv_makeConnector
+#   mujoco.mjv_initGeom(scene.geoms[scene.ngeom-1],
+#                       mujoco.mjtGeom.mjGEOM_CAPSULE, np.zeros(3),
+#                       np.zeros(3), np.zeros(9), rgba.astype(np.float32))
+#   mujoco.mjv_makeConnector(scene.geoms[scene.ngeom-1],
+#                            mujoco.mjtGeom.mjGEOM_CAPSULE, radius,
+#                            point1[0], point1[1], point1[2],
+#                            point2[0], point2[1], point2[2])
+
+#  # traces of time, position and speed
+# time = []
+# position = []
+# speed = []
+# offset = physics.model.jnt_axis[0]/8  # offset along the joint axis
+
+# def scene_callback(physics, scn):
+#   """Draw position trace, speed modifies width and colours."""
+#   if len(position) > 1:
+#     for i in range(len(position)-1):
+#       rgba=np.array((np.clip(speed[i]/10, 0, 1),
+#                      np.clip(1-speed[i]/10, 0, 1),
+#                      .5, 1.))
+#       radius=.003*(1+speed[i])
+#       point1 = position[i] + offset*time[i]
+#       point2 = position[i+1] + offset*time[i+1]
+#       add_visual_capsule(scn, point1, point2, radius, rgba)
+
 camera = mujoco.MjvCamera()
 camera.trackbodyid = 2
-camera.distance = 3
+camera.distance = 5
 camera.azimuth = 90
 camera.elevation = -50
 mujoco.mjv_updateScene(
