@@ -33,7 +33,7 @@
     <worldbody>
         <light directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5" dir="-.9 -.3 -2.5 "/>
         <geom name='floor' type='plane' conaffinity='15' condim='3' material='plane' pos='0 0 0' size='1 1 0.125'/>
-        <geom pos="0.4 0 0.5" size="0.02 1 0.5" type="box" condim="3" name="wall1"/>
+        <geom pos="0.52 0 0.5" size="0.02 1 0.5" type="box" condim="3" name="wall1"/>
         <body name="base" pos="0 0 0">
             <inertial diaginertia="0 0 0" mass="0" pos="0 0 0"/>
             <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" quat="0.707 0.707 0 0" mesh="base_vis" />

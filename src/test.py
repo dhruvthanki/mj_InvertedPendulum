@@ -9,6 +9,7 @@ from mujoco import viewer
 from scipy.spatial.transform import Rotation as R
 # import pyquaternion as quat
 from pyquaternion import Quaternion
+import threading
 
 model = mujoco.MjModel.from_xml_path('/home/dhruv/Documents/GitHub/mj_InvertedPendulum2/model/ur5/ur5.xml')
 data = mujoco.MjData(model)
@@ -78,14 +79,14 @@ def orientation_error(desired, current):
     return error
 
 def calc_des(timeT):
-    A = 0*0.20
+    A = 0.20
     omega = 1#2*np.pi*1
     # ref = np.array([-0.134,  -0.0994,  1.0795-1.5*A+A])
     # d_ref = np.zeros(3)
     # dd_ref = np.zeros(3)
     # ref = np.array([-0.134,  -0.0994+A*np.sin(omega*timeT),  1.0795-1.5*A+A*np.cos(omega*timeT)])
-    # ref = np.array([0.4,  -0.0994+A*np.sin(omega*timeT),  1.0795-1.5*A+A*np.cos(omega*timet)])
-    ref = np.array([0.4,  A,  0.8])
+    ref = np.array([0.5,  -0.0994+A*np.sin(omega*timeT),  1.0795-1.5*A+A*np.cos(omega*timeT)])
+    # ref = np.array([0.4,  A,  0.8])
     d_ref = np.array([0,  A*np.cos(timeT),  -A*np.sin(timeT)])
     dd_ref = np.array([0,  -A*np.sin(timeT),  -A*np.cos(timeT)])
     r = R.from_euler('XYZ', [0,90,0], degrees=True)
@@ -107,8 +108,8 @@ input = np.zeros((1,6))
 
 delta = 1.0e-4
 
-viewer.launch_passive(model, data)
-while(True):
+viz_thread = viewer.launch_passive(model, data)
+while(viz_thread.is_alive()):
     mujoco.mj_step1(model, data)
 
     # print(site_pos)
@@ -122,30 +123,31 @@ while(True):
     ref, d_ref, dd_ref, ref_ori, force_ref = calc_des(data.time)
     
     # if not (data.sensordata[0] == 0):
-    #     print(data.sensordata[0])
+    print(data.sensordata[0])
 
     # Force Control direction
     a1 = np.block([np.zeros((1, model.nu+6)), np.ones((1,1))])
     # force_diff  = force_ref - data.sensordata[0]
-    b1 = force_ref
+    b1 = -force_ref 
 
     # Motion control direction
+    a2 = np.block([np.zeros((3, model.nu)), -st_jacr, np.zeros((3,1))])
     site_ori = data.site_xmat[EndEffector]
     site_ori = np.reshape(site_ori, (3,3))
+    diff_orientation_err = orientation_error(ref_ori, site_ori)
+    ddy_des_ori = np.zeros((diff_orientation_err.shape[0])) + Kd_osc_r*(np.zeros((diff_orientation_err.shape[0]))-st_jacr@data.qvel) + Kp_osc_r*(diff_orientation_err)
     dJac_r = (st_jacr - J_old_r)/0.0005
     J_old_r = st_jacr
-    a2 = np.block([np.zeros((3, model.nu)), -st_jacr, np.zeros((3,1))])
-    diff_quat_err = orientation_error(ref_ori, site_ori)
-    ddy_des_ori = np.zeros((diff_quat_err.shape[0])) + Kd_osc_r*(np.zeros((diff_quat_err.shape[0]))-st_jacr@data.qvel) + Kp_osc_r*(diff_quat_err)
     b2 = dJac_r@data.qvel - ddy_des_ori
     
+    dim=3
+    a3 = np.block([np.zeros((dim, model.nu)), -st_jacp[-dim:, :], np.zeros((dim,1))])
     site_pos = data.site_xpos[EndEffector]
+    ddy_des_pos = dd_ref[-dim:] + Kd_osc*(d_ref[-dim:]-st_jacp[-dim:, :]@data.qvel) + Kp_osc*(ref[-dim:]-site_pos[-dim:])
+    # ddy_des_ori = np.zeros((1,4)) + Kd_osc*(np.zeros((1,4))-st_jacr@data.qvel) + Kp_osc*(ref-site_pos)
     dJac = (st_jacp - J_old)/0.0005
     J_old = st_jacp
-    a3 = np.block([np.zeros((3, model.nu)), -st_jacp, np.zeros((3,1))])
-    ddy_des_pos = dd_ref + Kd_osc*(d_ref-st_jacp@data.qvel) + Kp_osc*(ref-site_pos)
-    # ddy_des_ori = np.zeros((1,4)) + Kd_osc*(np.zeros((1,4))-st_jacr@data.qvel) + Kp_osc*(ref-site_pos)
-    b3 = dJac@data.qvel - ddy_des_pos
+    b3 = dJac[-dim:, :]@data.qvel - ddy_des_pos
 
     mujoco.mj_fullM(model, M, data.qM)
     Bias = data.qfrc_bias
@@ -156,8 +158,8 @@ while(True):
 
     # OSQP Setup
     # https://scaron.info/blog/conversion-from-least-squares-to-quadratic-programming.html
-    Q = (a3.transpose()).dot(a3) + (a2.transpose()).dot(a2) + delta*np.eye(13)
-    q = -(a3.transpose()).dot(b3) - (a2.transpose()).dot(b2)
+    Q = 2*(a3.transpose()).dot(a3) + 50*(a2.transpose()).dot(a2) + 50*(a1.transpose()).dot(a1) + delta*np.eye(13)
+    q = -2*(a3.transpose()).dot(b3) - 50*(a2.transpose()).dot(b2) - 50*(a1.transpose()).dot(b1)
     P = sparse.csc_matrix(Q)
     A = sparse.csc_matrix(Aeq)
 
